@@ -22,6 +22,9 @@
 #include "stm32f1xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "awags.h"
+#include "GRM.h"
+#include "stm32f1xx_hal_tim.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -52,6 +55,42 @@
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+/**
+  * @brief  Input Capture callback in non-blocking mode
+  * @param  htim TIM IC handle
+  * @retval None
+  */
+void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
+{
+	if(htim->Instance == TIM3) {
+		awags_interrupt_routine();
+	}
+	if(htim->Instance == TIM4) {
+		//Overflow in counter register
+		if ( __HAL_TIM_GET_FLAG(htim,TIM_FLAG_UPDATE)) {
+			GRM_handle_timer_overflow(htim);
+		}
+		// new impulse on GPIO
+		if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4) {
+			uint16_t captured_ticks = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_4);
+			GRM_new_pulse(captured_ticks);
+		}
+	}
+
+}
+
+/**
+  * @brief  Rx Transfer completed callback.
+  * @param  hspi pointer to a SPI_HandleTypeDef structure that contains
+  *               the configuration information for SPI module.
+  * @retval None
+  */
+void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
+{
+	//TODO: Handle receive callback
+	awags_receive_data(hspi);
+
+}
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/

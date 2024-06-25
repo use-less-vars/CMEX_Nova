@@ -2,12 +2,15 @@
 
 #include "stm32f1xx_hal.h"
 #include "stm32f1xx_hal_tim.h"
+#include "stm32f1xx_hal_spi.h"
 
 #define N_FB_CHANNELS (4)
 
 static Awags_data data_register;
+static uint32_t receive_buffer;
 
 extern TIM_HandleTypeDef htim3;
+extern SPI_HandleTypeDef hspi2;
 
 void set_reset(bool state);
 void write_awags(Awags_data data);
@@ -23,7 +26,21 @@ static void start_timer(uint16_t usec) {
 void awags_interrupt_routine(void) {
 
 	//TODO: start ADC
+	//TODO: read in the Datasheet how much time the ADC need to capture the voltage.
+	// As backup divide the integraton time into 2 parts:
+	// Example 95% -> start ADC & 100% -> Stop integration
 	set_reset(true);
+}
+
+void write_awags(Awags_data data) {
+	//
+	//TODO: formulate the request with register address (high / low
+	//HAL_SPI_Transmit_IT(&hspi2, &data, sizeof(Awags_data));
+	HAL_SPI_Receive_IT(&hspi2, &receive_buffer, 4);
+}
+
+void awags_receive_data(SPI_HandleTypeDef *hspi) {
+
 }
 
 /*

@@ -19,13 +19,9 @@ that increment a variable the timer reaches its limit (65536)
 the full time can be calculated by (CNT + 65536 * counter)
 */
 
-
-void GRM_read_timer(TIM_HandleTypeDef *htim)
-{
-    uint16_t counter = __HAL_TIM_GET_COUNTER(htim);
-    time = counter + 65535 * overflow_counter;
-    overflow_counter = 0;
-    __HAL_TIM_SET_COUNTER(htim,0);
+void GRM_new_pulse(uint16_t captured_ticks) {
+    time = captured_ticks + 65535 * overflow_counter;
+	__HAL_TIM_SET_COUNTER(htim,0);
 }
 
 void GRM_handle_timer_overflow(TIM_HandleTypeDef *htim) 
@@ -33,5 +29,9 @@ void GRM_handle_timer_overflow(TIM_HandleTypeDef *htim)
     __HAL_TIM_SET_COUNTER(htim,0);
     overflow_counter ++;
     
+}
+
+uint32_t GRM_get_last_time(void) {
+	return time;
 }
 
