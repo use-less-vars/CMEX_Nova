@@ -8,7 +8,7 @@
 
 // both will be called in the Timer Interrupt
 void GRM_handle_timer_overflow(TIM_HandleTypeDef *htim);
-void GRM_new_pulse(uint16_t captured_ticks);
+void GRM_new_pulse(TIM_HandleTypeDef *htim, uint16_t captured_ticks);
 
 // returns the last captured time between 2 pulses
 uint32_t GRM_get_last_time(void);

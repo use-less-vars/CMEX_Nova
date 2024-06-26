@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "assert.h"
+#include "stm32f1xx_hal.h"
+#include "stm32f1xx_hal_spi.h"
 
 /* each bit is an additional capacitor
  Bit0->C1 - Bit3->C4
@@ -33,7 +35,11 @@ static_assert(sizeof(Register_high) == 2, "Register_high should be 2 bytes");
 typedef struct Awags_data {
 	union{
 		Register_low low;
+		uint8_t low_bytes[2];
+	};
+	union{
 		Register_high high;
+		uint8_t high_bytes[2];
 	};
 } Awags_data;
 

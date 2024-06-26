@@ -7,13 +7,13 @@
 #define N_FB_CHANNELS (4)
 
 static Awags_data data_register;
-static uint32_t receive_buffer;
+static uint8_t rx_buffer[0] = {0};
 
 extern TIM_HandleTypeDef htim3;
 extern SPI_HandleTypeDef hspi2;
 
 void set_reset(bool state);
-void write_awags(Awags_data data);
+void write_awags(Awags_data data, bool high);
 Awags_data read_awags(void);
 
 //TODO: Timer, um die wartezeiten individuell zu setzen
@@ -25,21 +25,34 @@ static void start_timer(uint16_t usec) {
 
 void awags_interrupt_routine(void) {
 
-	//TODO: start ADC
+	//TODO: start sample of ADC
 	//TODO: read in the Datasheet how much time the ADC need to capture the voltage.
 	// As backup divide the integraton time into 2 parts:
 	// Example 95% -> start ADC & 100% -> Stop integration
 	set_reset(true);
 }
 
-void write_awags(Awags_data data) {
+void write_awags(Awags_data data, bool high) {
 	//
-	//TODO: formulate the request with register address (high / low
-	//HAL_SPI_Transmit_IT(&hspi2, &data, sizeof(Awags_data));
-	HAL_SPI_Receive_IT(&hspi2, &receive_buffer, 4);
+	//TODO: Chip select high
+	uint8_t tx_buffer[3] = {0};
+	if (high) {
+		tx_buffer[0] = data.high_bytes[0];
+		tx_buffer[1] = data.high_bytes[1];
+	} else {
+		tx_buffer[0] = data.low_bytes[0];
+		tx_buffer[1] = data.low_bytes[1];
+	}
+	tx_buffer[2] = high; //16 1 for high, 0 for low
+
+	// Interrupt or "normal"
+	HAL_SPI_Transmit(&hspi2, tx_buffer, 3);
+	// chip select low
 }
 
 void awags_receive_data(SPI_HandleTypeDef *hspi) {
+
+	HAL_SPI_Receive_IT(&hspi2, rx_buffer, 3);
 
 }
 
@@ -55,11 +68,11 @@ void awags_receive_data(SPI_HandleTypeDef *hspi) {
  wait(100ms)
  */
 
-void trigger_execution(void) {
+void trigger_execution(uint16_t integration_time) {
 	set_reset(true);    // trigger impulse
 	set_reset(false);
 
-	start_timer(80);
+	start_timer(integration_time);	// in µsec
 }
 
 /**
@@ -75,7 +88,7 @@ void set_feedback_capacitors(uint8_t binary) {
 	data_register.low.ch3_fb_capacity = binary;
 	data_register.low.ch4_fb_capacity = binary;
 
-	write_awags(data_register);
+	write_awags(data_register, false);
 
 }
 
@@ -90,12 +103,12 @@ void set_dac(uint16_t voltage) {
 	}
 	uint16_t dac_converted = ((voltage * 1023) / 1800); //1800 --> 0x3FF (10 bits)
 	data_register.high.dac = dac_converted;
-	write_awags(data_register);
+	write_awags(data_register, true);
 }
 
 void set_auto(bool state) {
 	data_register.high.ac = state;
-	write_awags(data_register);
+	write_awags(data_register,true);
 }
 
 void set_reset(bool state) {

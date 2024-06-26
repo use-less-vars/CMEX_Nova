@@ -73,7 +73,7 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 		// new impulse on GPIO
 		if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4) {
 			uint16_t captured_ticks = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_4);
-			GRM_new_pulse(captured_ticks);
+			GRM_new_pulse(htim,captured_ticks);
 		}
 	}
 
@@ -85,12 +85,14 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
   *               the configuration information for SPI module.
   * @retval None
   */
+/*
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
 {
 	//TODO: Handle receive callback
 	awags_receive_data(hspi);
 
 }
+*/
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
