@@ -45,7 +45,7 @@ typedef struct Awags_data {
 
 void trigger_execution(void);
 void awags_interrupt_routine(void);
-void awags_receive_data(SPI_HandleTypeDef *hspi);
+uint16_t awags_read_register(bool high_register, bool awags_fb);
 
 
 #endif /* AWAGS_H_ */

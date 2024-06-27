@@ -2,15 +2,23 @@
 
 #include "stm32f1xx_hal.h"
 #include "stm32f1xx_hal_tim.h"
-#include "stm32f1xx_hal_spi.h"
+#include "stm32f1xx_hal_gpio.h"
 
 #define N_FB_CHANNELS (4)
 
+#define SEL_PIN GPIO_PIN_12
+#define CLK_PIN GPIO_PIN_13
+#define DI_PIN GPIO_PIN_14		// Data In
+#define DO_PIN GPIO_PIN_15		// Data Out
+#define RESET_PIN GPIO_PIN_6
+
+#define HIGH GPIO_PIN_SET
+#define LOW GPIO_PIN_RESET
+
 static Awags_data data_register;
-static uint8_t rx_buffer[0] = {0};
+static uint16_t rx_buffer = 0;
 
 extern TIM_HandleTypeDef htim3;
-extern SPI_HandleTypeDef hspi2;
 
 void set_reset(bool state);
 void write_awags(Awags_data data, bool high);
@@ -35,24 +43,72 @@ void awags_interrupt_routine(void) {
 void write_awags(Awags_data data, bool high) {
 	//
 	//TODO: Chip select high
-	uint8_t tx_buffer[3] = {0};
+	uint16_t tx_buffer = 0;
 	if (high) {
-		tx_buffer[0] = data.high_bytes[0];
-		tx_buffer[1] = data.high_bytes[1];
+		tx_buffer = (uint16_t) data.high;
 	} else {
-		tx_buffer[0] = data.low_bytes[0];
-		tx_buffer[1] = data.low_bytes[1];
+		tx_buffer = (uint16_t) data.low;
 	}
-	tx_buffer[2] = high; //16 1 for high, 0 for low
 
-	// Interrupt or "normal"
-	HAL_SPI_Transmit(&hspi2, tx_buffer, 3);
-	// chip select low
+	// Disable Interrupts
+	HAL_GPIO_WritePin(GPIOB, CLK_PIN, LOW);
+	HAL_GPIO_WritePin(GPIOB, SEL_PIN, LOW);
+	HAL_GPIO_WritePin(GPIOB, DO_PIN, LOW);
+
+	HAL_GPIO_WritePin(GPIOB, SEL_PIN, HIGH);
+
+	for (uint8_t i = 0; i <= 15; i++) {
+		HAL_GPIO_WritePin(GPIOB, DO_PIN, (GPIO_PinState)((tx_buffer >> i) & 0x1));
+		HAL_GPIO_WritePin(GPIOB, CLK_PIN, HIGH);
+
+		if (i == 15) {
+			HAL_GPIO_WritePin(GPIOC, RESET_PIN, (GPIO_PinState)high);
+			HAL_GPIO_WritePin(GPIOB, SEL_PIN, LOW);
+			HAL_GPIO_WritePin(GPIOB, CLK_PIN, LOW);
+		}
+		else {
+			HAL_GPIO_WritePin(GPIOB, CLK_PIN, LOW);
+		}
+	}
+	HAL_GPIO_WritePin(GPIOC, RESET_PIN, LOW);
+	// Enable Inerrupts
+
 }
 
-void awags_receive_data(SPI_HandleTypeDef *hspi) {
+uint16_t awags_read_register(bool high_register, bool awags_fb) {
+	// Disable interrupts
+	rx_buffer = 0;
+	uint8_t bit = 0;
+	HAL_GPIO_WritePin(GPIOB, CLK_PIN, LOW);
+	HAL_GPIO_WritePin(GPIOB, SEL_PIN, LOW);
+	HAL_GPIO_WritePin(GPIOB, DO_PIN, LOW);
 
-	HAL_SPI_Receive_IT(&hspi2, rx_buffer, 3);
+	if (awags_fb) {
+		HAL_GPIO_WritePin(GPIOB, CLK_PIN, LOW);
+	} else {
+		HAL_GPIO_WritePin(GPIOB, CLK_PIN, HIGH);
+		HAL_GPIO_WritePin(GPIOC, RESET_PIN, HIGH);		// high --> slow readout / low --> fast
+	}
+
+	HAL_GPIO_WritePin(GPIOB, SEL_PIN, HIGH);	//start read
+
+	if(awags_fb) {
+		HAL_GPIO_WritePin(GPIOC, RESET_PIN, HIGH);
+	}
+	HAL_GPIO_WritePin(GPIOC, RESET_PIN, LOW);
+	HAL_GPIO_WritePin(GPIOB, CLK_PIN, LOW);
+	HAL_GPIO_WritePin(GPIOB, SEL_PIN, LOW);
+
+	for(uint8_t i = 0;i <= 15; i++ ) {
+		if ( i > 0)  {
+			HAL_GPIO_WritePin(GPIOB, CLK_PIN, HIGH);
+			HAL_GPIO_WritePin(GPIOB, CLK_PIN, LOW);
+		}
+		bit = HAL_GPIO_ReadPin(GPIOB, DI_PIN);
+		rx_buffer = rx_buffer | (bit <<i);
+	}
+	// Enable Interrupts
+	return rx_buffer;
 
 }
 
