@@ -35,15 +35,15 @@ static_assert(sizeof(Register_high) == 2, "Register_high should be 2 bytes");
 typedef struct Awags_data {
 	union{
 		Register_low low;
-		uint8_t low_bytes[2];
+		uint16_t low_bytes;
 	};
 	union{
 		Register_high high;
-		uint8_t high_bytes[2];
+		uint16_t high_bytes;
 	};
 } Awags_data;
 
-void trigger_execution(void);
+void trigger_execution(uint16_t integration_time);
 void awags_interrupt_routine(void);
 uint16_t awags_read_register(bool high_register, bool awags_fb);
 

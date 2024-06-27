@@ -45,9 +45,9 @@ void write_awags(Awags_data data, bool high) {
 	//TODO: Chip select high
 	uint16_t tx_buffer = 0;
 	if (high) {
-		tx_buffer = (uint16_t) data.high;
+		tx_buffer = data.high_bytes;
 	} else {
-		tx_buffer = (uint16_t) data.low;
+		tx_buffer = data.low_bytes;
 	}
 
 	// Disable Interrupts
