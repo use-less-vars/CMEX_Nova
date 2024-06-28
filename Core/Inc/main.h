@@ -67,6 +67,16 @@ void Error_Handler(void);
 #define CS_GPIO_Port GPIOA
 #define OS0_Pin GPIO_PIN_7
 #define OS0_GPIO_Port GPIOA
+#define AWAGS_SEL_Pin GPIO_PIN_12
+#define AWAGS_SEL_GPIO_Port GPIOB
+#define AWAGS_CLK_Pin GPIO_PIN_13
+#define AWAGS_CLK_GPIO_Port GPIOB
+#define AWAGS_MISO_Pin GPIO_PIN_14
+#define AWAGS_MISO_GPIO_Port GPIOB
+#define AWAGS_MOSI_Pin GPIO_PIN_15
+#define AWAGS_MOSI_GPIO_Port GPIOB
+#define AWAGS_Reset_Pin GPIO_PIN_6
+#define AWAGS_Reset_GPIO_Port GPIOC
 #define OS1_Pin GPIO_PIN_8
 #define OS1_GPIO_Port GPIOA
 #define OS2_Pin GPIO_PIN_9
