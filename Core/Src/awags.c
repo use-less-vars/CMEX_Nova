@@ -157,7 +157,7 @@ void set_dac(uint16_t voltage) {
 	if (voltage > 1800) {
 		voltage = 1800;
 	}
-	uint16_t dac_converted = ((voltage * 1023) / 1800); //1800 --> 0x3FF (10 bits)
+	uint16_t dac_converted = ((voltage * 1023) / 1800); //1800 --> 0x3FF (10 bits) WRONG!!!!
 	data_register.high.dac = dac_converted;
 	write_awags(data_register, true);
 }
