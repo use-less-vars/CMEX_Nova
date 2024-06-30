@@ -6,11 +6,10 @@
 #include "stm32f1xx_hal.h"
 #include "stm32f1xx_hal_tim.h"
 
-// both will be called in the Timer Interrupt
-void GRM_handle_timer_overflow(TIM_HandleTypeDef *htim);
-void GRM_new_pulse(TIM_HandleTypeDef *htim, uint16_t captured_ticks);
+// Handle GPIO interrupt
+void GRM_new_pulse(void);
 
-// returns the last captured time between 2 pulses
-uint32_t GRM_get_last_time(void);
+// returns the number of captured impulses
+uint32_t GRM_get_counter(void);
 
 #endif /* GRM_H_ */

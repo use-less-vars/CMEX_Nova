@@ -60,23 +60,14 @@
   * @param  htim TIM IC handle
   * @retval None
   */
-void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	if(htim->Instance == TIM3) {
 		awags_interrupt_routine();
 	}
-	if(htim->Instance == TIM4) {
-		//Overflow in counter register
-		if ( __HAL_TIM_GET_FLAG(htim,TIM_FLAG_UPDATE)) {
-			GRM_handle_timer_overflow(htim);
-		}
-		// new impulse on GPIO
-		if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4) {
-			uint16_t captured_ticks = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_4);
-			GRM_new_pulse(htim,captured_ticks);
-		}
+	if(htim->Instance == TIM1) {
+		main_timer_callback();
 	}
-
 }
 
 /**

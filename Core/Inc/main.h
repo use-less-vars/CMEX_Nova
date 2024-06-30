@@ -83,7 +83,7 @@ void Error_Handler(void);
 #define OS2_GPIO_Port GPIOA
 
 /* USER CODE BEGIN Private defines */
-
+void main_timer_callback(void);
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus
