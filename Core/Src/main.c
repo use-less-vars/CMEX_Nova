@@ -21,7 +21,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "GRM.h"
+#include "awags.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -65,6 +66,12 @@ static void MX_TIM4_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+void main_timer_callback(void)
+{
+	uint32_t grm_counter = GRM_get_counter();
+	awags_trigger_execution(100);
+
+}
 /* USER CODE END 0 */
 
 /**
@@ -356,11 +363,14 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
- if(GPIO_Pin == GPIO_PIN_10){
-	 HAL_GPIO_WritePin(CS_GPIO_Port,CS_Pin, GPIO_PIN_RESET);
+	if(GPIO_Pin == GPIO_PIN_10){
+		HAL_GPIO_WritePin(CS_GPIO_Port,CS_Pin, GPIO_PIN_RESET);
 
-	 HAL_SPI_Receive_IT(&hspi1, adc_data, 8);
- }
+		HAL_SPI_Receive_IT(&hspi1, adc_data, 8);
+	}
+	if(GPIO_Pin == GPIO_PIN_9) {
+		GRM_new_pulse();
+	}
 }
 
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi){

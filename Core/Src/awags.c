@@ -27,7 +27,8 @@ Awags_data read_awags(void);
 //TODO: Timer, um die wartezeiten individuell zu setzen
 
 static void start_timer(uint16_t usec) {
-	__HAL_TIM_SET_COUNTER(&htim3, usec);
+	__HAL_TIM_SET_AUTORELOAD(&htim3, usec);	// set count limit
+	__HAL_TIM_SET_COUNTER(&htim3, 0);		//Reset counter register
 	HAL_TIM_Base_Start_IT(&htim3);
 }
 
@@ -124,7 +125,7 @@ uint16_t awags_read_register(bool high_register, bool awags_fb) {
  wait(100ms)
  */
 
-void trigger_execution(uint16_t integration_time) {
+void awags_trigger_execution(uint16_t integration_time) {
 	set_reset(true);    // trigger impulse
 	set_reset(false);
 
@@ -153,11 +154,11 @@ void set_feedback_capacitors(uint8_t binary) {
  * 
  * @param voltage in mili volt, min=0, max=1800
  */
-void set_dac(uint16_t voltage) {
-	if (voltage > 1800) {
-		voltage = 1800;
+void set_dac(uint32_t mili_voltage) {
+	if (mili_voltage > 1800) {
+		mili_voltage = 1800;
 	}
-	uint16_t dac_converted = ((voltage * 1023) / 1800); //1800 --> 0x3FF (10 bits) WRONG!!!!
+	uint16_t dac_converted = ((mili_voltage * 1023) / 1800); //1800 --> 0x3FF (10 bits) WRONG!!!!
 	data_register.high.dac = dac_converted;
 	write_awags(data_register, true);
 }

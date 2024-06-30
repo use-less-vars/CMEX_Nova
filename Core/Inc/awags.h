@@ -43,7 +43,7 @@ typedef struct Awags_data {
 	};
 } Awags_data;
 
-void trigger_execution(uint16_t integration_time);
+void awags_trigger_execution(uint16_t integration_time);
 void awags_interrupt_routine(void);
 uint16_t awags_read_register(bool high_register, bool awags_fb);
 
