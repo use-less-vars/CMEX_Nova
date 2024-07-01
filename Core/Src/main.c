@@ -46,6 +46,7 @@ I2C_HandleTypeDef hi2c2;
 
 SPI_HandleTypeDef hspi1;
 
+TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
 
@@ -73,6 +74,7 @@ static void MX_I2C2_Init(void);
 void main_timer_callback(void)
 {
 	uint32_t grm_counter = GRM_get_counter();
+	// TODO: write GRM to buffer
 	awags_trigger_execution(100);
 
 }
@@ -113,6 +115,8 @@ int main(void)
   MX_I2C2_Init();
   initRingBuffer();
   /* USER CODE BEGIN 2 */
+  __HAL_TIM_SET_AUTORELOAD(&htim1,100000); //100.000 µsec
+  HAL_TIM_Base_Start_IT(&htim1);
 
   /* USER CODE END 2 */
 

@@ -14,6 +14,22 @@
  C2 = 8x C0
  C3 = 32x C0
  C4 = 128x C0*/
+
+typedef enum {
+	C0 = 0x00,
+	C1 = 0x11,
+	C2 = 0x22,
+	C3 = 0x44,
+	C4 = 0x88
+} FB_Capacitors;
+
+typedef enum {
+	start_integtation,
+	start_ADC,
+	stop_integration
+
+}Timer_Routine_Type;
+
 typedef struct __attribute__((packed)) {
 	uint16_t ch1_fb_capacity :4;
 	uint16_t ch2_fb_capacity :4;
@@ -46,6 +62,10 @@ typedef struct Awags_data {
 void awags_trigger_execution(uint16_t integration_time);
 void awags_interrupt_routine(void);
 uint16_t awags_read_register(bool high_register, bool awags_fb);
+
+void set_feedback_capacitors(FB_Capacitors binary);
+
+void save_ADC_measurement(uint16_t value);
 
 
 #endif /* AWAGS_H_ */
