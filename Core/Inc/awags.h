@@ -65,5 +65,7 @@ uint16_t awags_read_register(bool high_register, bool awags_fb);
 
 void set_feedback_capacitors(FB_Capacitors binary);
 
+void save_ADC_measurement(uint16_t value);
+
 
 #endif /* AWAGS_H_ */

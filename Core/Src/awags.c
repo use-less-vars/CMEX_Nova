@@ -33,10 +33,14 @@ static uint8_t capacity_index = 0;
 
 static volatile Timer_Routine_Type timer_routine = start_integtation;
 
+static uint16_t adc_measurements[integration_times_length*capacitors_length] = {0};
+static uint16_t adc_index = 0;
 
 void set_reset(bool state);
 void write_awags(Awags_data data, bool high);
 Awags_data read_awags(void);
+
+void safe_best_ADC_value(void);
 
 
 static void start_timer(uint16_t usec) {
@@ -74,6 +78,7 @@ void awags_interrupt_routine(void) {
 				(integation_index >= integration_times_length)) {
 			capacity_index = 0;
 			integation_index = 0;
+			safe_best_ADC_value();
 		}
 		else {
 			if (integation_index >= integration_times_length) {
@@ -99,10 +104,34 @@ void awags_interrupt_routine(void) {
 void awags_trigger_execution(uint16_t integration_time) {
 	capacity_index = 0;
 	integation_index = 0;
+	adc_index = 0;
 	timer_routine = start_integtation;
 	//start manually, next measurements will be triggered by the timer
 	awags_interrupt_routine();
 }
+
+void save_ADC_measurement(uint16_t value) {
+	adc_measurements[adc_index] = value;
+	adc_index ++;
+
+}
+
+void safe_best_ADC_value(void) {
+	target_value = INT16_MAX/2;
+	best_dist = INT16_MAX;
+	best_index = 0;
+	for ( uint16_t i = 0; i < (integration_times_length*capacitors_length); i++) {
+		if (abs(target_value-adc_measurements[i]) < abs(target_value-best_dist)) {
+			best_dist = adc_measurements[i];
+			best_index = i;
+		}
+	}
+	uint8_t integration_setting = best_index % capacitors_length;
+	uint8_t capacity_setting = best_index / capacitors_length;
+	//write best dist into ring buffer
+
+}
+
 
 
 void write_awags(Awags_data data, bool high) {
