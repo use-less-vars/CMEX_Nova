@@ -23,6 +23,7 @@
 /* USER CODE BEGIN Includes */
 #include "GRM.h"
 #include "awags.h"
+#include "ringbuffer.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -94,10 +95,6 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-//consta = 1
-//		poll(busy == 0)
-//cs =0
-//read 8 byte to datafield
 
   /* USER CODE END Init */
 
@@ -114,6 +111,7 @@ int main(void)
   MX_TIM3_Init();
   MX_TIM4_Init();
   MX_I2C2_Init();
+  initRingBuffer();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
