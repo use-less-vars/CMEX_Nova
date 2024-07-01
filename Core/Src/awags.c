@@ -111,9 +111,11 @@ void awags_trigger_execution(uint16_t integration_time) {
 }
 
 void save_ADC_measurement(uint16_t value) {
-	adc_measurements[adc_index] = value;
-	adc_index ++;
-
+	// check if the index is inside the array
+	if(adc_index <(sizeof(adc_measurements) / sizeof(adc_measurements[0]))) {
+		adc_measurements[adc_index] = value;
+		adc_index ++;
+	}
 }
 
 void safe_best_ADC_value(void) {
