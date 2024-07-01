@@ -15,16 +15,29 @@
 #define HIGH GPIO_PIN_SET
 #define LOW GPIO_PIN_RESET
 
+#define RESET_TIME (10) //µsec
+
 static Awags_data data_register;
 static uint16_t rx_buffer = 0;
 
 extern TIM_HandleTypeDef htim3;
 
+
+const uint32_t integration_times[] = {20,50,100,200,500,1000};
+const uint32_t integration_times_length = (sizeof(integration_times) / sizeof(integration_times[0]));
+static uint8_t integation_index = 0;
+
+const FB_Capacitors capacitors[] = {C0,C1,C2,C3,C4};
+const uint32_t capacitors_length = (sizeof(capacitors) / sizeof(capacitors[0]));
+static uint8_t capacity_index = 0;
+
+static volatile Timer_Routine_Type timer_routine = start_integtation;
+
+
 void set_reset(bool state);
 void write_awags(Awags_data data, bool high);
 Awags_data read_awags(void);
 
-//TODO: Timer, um die wartezeiten individuell zu setzen
 
 static void start_timer(uint16_t usec) {
 	__HAL_TIM_SET_AUTORELOAD(&htim3, usec);	// set count limit
@@ -33,13 +46,64 @@ static void start_timer(uint16_t usec) {
 }
 
 void awags_interrupt_routine(void) {
+	switch(timer_routine) {
+	case start_integtation:
+		if (integation_index == 0) {
+			set_feedback_capacitors(capacitors[capacity_index]);
+			capacity_index ++;
+		}
+		// trigger start integration impulse
+		set_reset(true);
+		set_reset(false);
+		//start timer
+		start_timer(integration_times[integation_index]);	// in µsec
+		integation_index ++;
+
+
+		//set next state
+		timer_routine = start_ADC;
+		break;
+	case start_ADC:
+		// TODO: start ADC
+		start_timer(RESET_TIME);
+		timer_routine = stop_integration;
+		break;
+	case stop_integration:
+		// last measurement finished
+		if ((capacity_index >= capacitors) &&
+				(integation_index >= integration_times_length)) {
+			capacity_index = 0;
+			integation_index = 0;
+		}
+		else {
+			if (integation_index >= integration_times_length) {
+				integation_index = 0;
+			}
+			start_timer(RESET_TIME);
+		}
+		timer_routine = start_integtation;
+		break;
+	default:
+		break;
+	}
 
 	//TODO: start sample of ADC
 	//TODO: read in the Datasheet how much time the ADC need to capture the voltage.
 	// As backup divide the integraton time into 2 parts:
 	// Example 95% -> start ADC & 100% -> Stop integration
-	set_reset(true);
 }
+
+/*
+ * Starts the first integration of the AWAGS
+ */
+void awags_trigger_execution(uint16_t integration_time) {
+	capacity_index = 0;
+	integation_index = 0;
+	timer_routine = start_integtation;
+	//start manually, next measurements will be triggered by the timer
+	awags_interrupt_routine();
+}
+
 
 void write_awags(Awags_data data, bool high) {
 	//
@@ -113,31 +177,12 @@ uint16_t awags_read_register(bool high_register, bool awags_fb) {
 
 }
 
-/*
- Loop:
- Reset --> High
- TRIG High --> ADC
- Reset --> Low
- wait (IntegrationTime/2)
- TRIG Low --> read ADC?
- wait (IntegrationTime/2)
- Reset --> High
- wait(100ms)
- */
-
-void awags_trigger_execution(uint16_t integration_time) {
-	set_reset(true);    // trigger impulse
-	set_reset(false);
-
-	start_timer(integration_time);	// in µsec
-}
-
 /**
  * @brief Set the feedback capacitors of the awags
  * 
  * @param binary 4bits for C1,C2,C3,C4
  */
-void set_feedback_capacitors(uint8_t binary) {
+void set_feedback_capacitors(FB_Capacitors binary) {
 
 	binary = binary & 0x00FF; // only the last 4 bit are relevant
 	data_register.low.ch1_fb_capacity = binary;
@@ -169,5 +214,5 @@ void set_auto(bool state) {
 }
 
 void set_reset(bool state) {
-	// Pin X write(state);
+	HAL_GPIO_WritePin(GPIOC, RESET_PIN, state);
 }
