@@ -43,6 +43,7 @@ static uint16_t adc_index = 0;
 
 void set_reset(bool state);
 void write_awags(Awags_data data, bool high);
+void set_feedback_capacitors(FB_Capacitors binary);
 Awags_data read_awags(void);
 
 void safe_best_ADC_value(void);
@@ -133,26 +134,29 @@ void save_ADC_measurement(uint8_t *value_array, uint8_t size) {
 }
 
 void safe_best_ADC_value(void) {
-	uint16_t target_value = UINT16_MAX/2;
-	uint16_t best_dist = UINT16_MAX;
-	uint16_t best_index = 0;
-	for ( uint16_t i = 0; i < (integration_times_length*capacitors_length); i++) {
-		if (abs(target_value-adc_measurements[i]) < abs(target_value-best_dist)) {
-			best_dist = adc_measurements[i];
-			best_index = i;
+	const uint16_t target_value = UINT16_MAX/2;
+	for (uint32_t j = 0; j < 3; j++) {
+		uint16_t best_dist = UINT16_MAX;
+		uint16_t best_index = 0;
+		for ( uint16_t i = 0; i < (integration_times_length*capacitors_length); i++) {
+			if (abs(target_value-adc_measurements[i][j]) < abs(target_value-best_dist)) {
+				best_dist = adc_measurements[i][j];
+				best_index = i;
+			}
 		}
+		// get index of best capacity and integration time
+		uint8_t integration_setting = best_index % capacitors_length;
+		uint8_t capacity_setting = best_index / capacitors_length;
+		//write data & settings into ring buffer
+		DataItem item;
+		item.timestamp = HAL_GetTick();
+		item.type = AWAGS_data;
+		item.data.awags.value = best_dist;
+		item.data.awags.capacity_type = capacity_setting;
+		item.data.awags.integration_type = integration_setting;
+		item.data.awags.adc_channel = j;
+		enqueue(item);
 	}
-	// get index of best capacity and integration time
-	uint8_t integration_setting = best_index % capacitors_length;
-	uint8_t capacity_setting = best_index / capacitors_length;
-	//write data & settings into ring buffer
-	DataItem item;
-	item.timestamp = HAL_GetTick();
-	item.type = AWAGS_data;
-	item.data.awags.value = best_dist;
-	item.data.awags.capacity_type = capacity_setting;
-	item.data.awags.integration_type = integration_setting;
-	enqueue(item);
 
 }
 

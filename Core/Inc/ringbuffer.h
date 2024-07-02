@@ -32,7 +32,8 @@ typedef struct __attribute__((packed)){
     	struct __attribute__((packed)){
     		uint16_t value;
     		uint8_t integration_type;
-    		uint8_t capacity_type;
+    		uint8_t adc_channel:2;
+    		uint8_t capacity_type:6;
     	}awags;
     }data;
 
