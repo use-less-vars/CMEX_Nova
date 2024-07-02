@@ -10,6 +10,6 @@
 void GRM_new_pulse(void);
 
 // returns the number of captured impulses
-uint32_t GRM_get_counter(void);
+void GRM_write_counter_into_ringbuffer(void);
 
 #endif /* GRM_H_ */

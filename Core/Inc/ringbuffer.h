@@ -13,6 +13,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "assert.h"
+
 #define BUFFER_SIZE 1000  // Size of the ring buffer
 
 // Enum to represent the types
@@ -22,11 +24,21 @@ typedef enum {
 } DataType;
 
 // Struct to represent the data stored in the ring buffer
-typedef struct {
+typedef struct __attribute__((packed)){
     uint32_t timestamp;
     uint8_t type;
-    uint32_t data;
+    union awags{
+    	uint32_t data32_t;
+    	struct __attribute__((packed)){
+    		uint16_t value;
+    		uint8_t integration_type;
+    		uint8_t capacity_type;
+    	}awags;
+    }data;
+
 } DataItem;
+
+static_assert(sizeof(DataItem) == 9, "DataItem should be 9 bytes");
 
 // Ring buffer structure
 typedef struct {

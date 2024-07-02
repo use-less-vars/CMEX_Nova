@@ -1,6 +1,7 @@
 
 #include "GRM.h"
 #include <stdint.h>
+#include "ringbuffer.h"
 
 static uint32_t impulse_counter = 0;
 
@@ -9,6 +10,11 @@ void GRM_new_pulse(void) {
 	impulse_counter ++;
 }
 
-uint32_t GRM_get_counter(void) {
-	return impulse_counter;
+void GRM_write_counter_into_ringbuffer(void) {
+
+	DataItem item;
+	item.timestamp = HAL_GetTick();
+	item.type = GRM_data;
+	item.data.data32_t = impulse_counter;
+	enqueue(item);
 }
