@@ -3,6 +3,9 @@
 #include "stm32f1xx_hal.h"
 #include "stm32f1xx_hal_tim.h"
 #include "stm32f1xx_hal_gpio.h"
+#include <stdlib.h>
+#include "assert.h"
+#include "ringbuffer.h"
 
 #define N_FB_CHANNELS (4)
 
@@ -33,11 +36,14 @@ static uint8_t capacity_index = 0;
 
 static volatile Timer_Routine_Type timer_routine = start_integration;
 
-static uint16_t adc_measurements[integration_times_length*capacitors_length] = {0};
+
+static_assert((sizeof(integration_times) / sizeof(integration_times[0])) * (sizeof(capacitors) / sizeof(capacitors[0])) == 30, "awags: Das Produkt beider Längen der Arrays muss 24 sein");
+static uint16_t adc_measurements[30][3] = {0};
 static uint16_t adc_index = 0;
 
 void set_reset(bool state);
 void write_awags(Awags_data data, bool high);
+void set_feedback_capacitors(FB_Capacitors binary);
 Awags_data read_awags(void);
 
 void safe_best_ADC_value(void);
@@ -74,7 +80,7 @@ void awags_interrupt_routine(void) {
 		break;
 	case stop_integration:
 		// last measurement finished
-		if ((capacity_index >= capacitors) &&
+		if ((capacity_index >= capacitors_length) &&
 				(integration_index >= integration_times_length)) {
 			capacity_index = 0;
 			integration_index = 0;
@@ -101,7 +107,7 @@ void awags_interrupt_routine(void) {
 /*
  * Starts the first integration of the AWAGS
  */
-void awags_trigger_execution(uint16_t integration_time) {
+void awags_trigger_execution() {
 	capacity_index = 0;
 	integration_index = 0;
 	adc_index = 0;
@@ -110,23 +116,47 @@ void awags_trigger_execution(uint16_t integration_time) {
 	awags_interrupt_routine();
 }
 
-void save_ADC_measurement(uint16_t value) {
-	// check if the index is inside the array
-	if(adc_index <(sizeof(adc_measurements) / sizeof(adc_measurements[0]))) {
-		adc_measurements[adc_index] = value;
-		adc_index ++;
-	}
+void save_ADC_measurement(uint8_t *value_array, uint8_t size) {
+	uint16_t data[4] = {0};
+    // Transform the uint8_t array to uint16_t array
+    for (size_t i = 0; i < size; i += 2) {
+        uint16_t highByte = value_array[i];
+        uint16_t lowByte = value_array[i + 1];
+        data[i / 2] = (highByte << 8) | lowByte;
+    }
+    for (uint32_t i = 0; i < 3; i++) {
+		// check if the index is inside the array
+		if(adc_index <(sizeof(adc_measurements) / sizeof(adc_measurements[0]))) {
+			adc_measurements[adc_index][i] = data[i];
+			adc_index ++;
+		}
+    }
 }
 
 void safe_best_ADC_value(void) {
-	target_value = UINT16_MAX/2;
-	best_dist = UINT16_MAX;
-	best_index = 0;
-	for ( uint16_t i = 0; i < (integration_times_length*capacitors_length); i++) {
-		if (abs(target_value-adc_measurements[i]) < abs(target_value-best_dist)) {
-			best_dist = adc_measurements[i];
-			best_index = i;
+	const uint16_t target_value = UINT16_MAX/2;
+	uint16_t best_index = 0;
+	for (uint32_t j = 0; j < 3; j++) {
+		uint16_t best_dist = UINT16_MAX;
+
+		for ( uint16_t i = 0; i < (integration_times_length*capacitors_length); i++) {
+			if (abs(target_value-adc_measurements[i][j]) < abs(target_value-best_dist)) {
+				best_dist = adc_measurements[i][j];
+				best_index = i;
+			}
 		}
+		// get index of best capacity and integration time
+		uint8_t integration_setting = best_index % capacitors_length;
+		uint8_t capacity_setting = best_index / capacitors_length;
+		//write data & settings into ring buffer
+		RINGBUFFER_DataItem item;
+		item.timestamp = HAL_GetTick();
+		item.type = AWAGS_data_ch0;
+		item.data.awags.value = best_dist;
+		item.data.awags.capacity_type = capacity_setting;
+		item.data.awags.integration_type = integration_setting;
+		item.data.awags.adc_channel = j;
+		RINGBUFFER_enqueue(item);
 	}
 	uint8_t integration_setting = best_index % capacitors_length;
 	uint8_t capacity_setting = best_index / capacitors_length;

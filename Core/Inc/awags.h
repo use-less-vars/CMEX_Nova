@@ -59,13 +59,10 @@ typedef struct Awags_data {
 	};
 } Awags_data;
 
-void awags_trigger_execution(uint16_t integration_time);
+void awags_trigger_execution(void);
 void awags_interrupt_routine(void);
-uint16_t awags_read_register(bool high_register, bool awags_fb);
 
-void set_feedback_capacitors(FB_Capacitors binary);
-
-void save_ADC_measurement(uint16_t value);
-
+void save_ADC_measurement(uint8_t *value_aray, uint8_t size);
+void safe_best_ADC_value(void);
 
 #endif /* AWAGS_H_ */

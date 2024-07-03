@@ -72,9 +72,9 @@ static void MX_TIM1_Init(void);
 
 void main_timer_callback(void)
 {
-	uint32_t grm_counter = GRM_get_counter();
-	// TODO: write GRM to buffer
-	awags_trigger_execution(100);
+	GRM_write_counter_into_ringbuffer();		// save count into ring buffer
+	safe_best_ADC_value();						// save best awags measurements into ring buffer
+	awags_trigger_execution();				// start next awags measurements
 
 }
 /* USER CODE END 0 */
@@ -183,7 +183,7 @@ static void MX_I2C2_Init(void)
   hi2c2.Instance = I2C2;
   hi2c2.Init.ClockSpeed = 100000;
   hi2c2.Init.DutyCycle = I2C_DUTYCYCLE_2;
-  hi2c2.Init.OwnAddress1 = 46;
+  hi2c2.Init.OwnAddress1 = 44;
   hi2c2.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c2.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
   hi2c2.Init.OwnAddress2 = 0;
@@ -412,19 +412,19 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-	if(GPIO_Pin == GPIO_PIN_10){
-		HAL_GPIO_WritePin(CS_GPIO_Port,CS_Pin, GPIO_PIN_RESET);
+	if(GPIO_Pin == GPIO_PIN_10){	// ADC Data ready
+		HAL_GPIO_WritePin(CS_GPIO_Port,CS_Pin, GPIO_PIN_RESET);	// set chip select active
 
 		HAL_SPI_Receive_IT(&hspi1, adc_data, 8);
 	}
-	if(GPIO_Pin == GPIO_PIN_9) {
+	if(GPIO_Pin == GPIO_PIN_9) {	// GRM pulse
 		GRM_new_pulse();
 	}
 }
 
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi){
-	adc_data_available = 1;
-	HAL_GPIO_WritePin(CS_GPIO_Port,CS_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(CS_GPIO_Port,CS_Pin, GPIO_PIN_SET);	// set Chip select deactive
+	save_ADC_measurement(adc_data,sizeof(adc_data));
 }
 
 /* USER CODE END 4 */

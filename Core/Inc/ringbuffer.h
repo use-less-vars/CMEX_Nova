@@ -19,17 +19,28 @@
 typedef enum {
     GRM_data = 0,
     AWAGS_data_ch0,
-	AWAGS_data_ch1,
-	AWAGS_data_ch2,
-	AWAGS_data_ch3
+    AWAGS_data_ch1,
+    AWAGS_data_ch2,
+    AWAGS_data_ch3
 } DataType;
 
 // Struct to represent the data stored in the ring buffer
 typedef struct __attribute__((packed)){
     uint32_t timestamp;
     uint8_t type;
-    uint32_t data;
+    union awags{
+    	uint32_t data32_t;
+    	struct __attribute__((packed)){
+    		uint16_t value;
+    		uint8_t integration_type;
+    		uint8_t adc_channel:2;
+    		uint8_t capacity_type:6;
+    	}awags;
+    }data;
+
 } RINGBUFFER_DataItem;
+
+//static_assert(sizeof(DataItem) == 9, "DataItem should be 9 bytes");
 
 // Ring buffer structure
 typedef struct {
