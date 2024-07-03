@@ -25,13 +25,13 @@ extern TIM_HandleTypeDef htim3;
 
 const uint32_t integration_times[] = {20,50,100,200,500,1000};
 const uint32_t integration_times_length = (sizeof(integration_times) / sizeof(integration_times[0]));
-static uint8_t integation_index = 0;
+static uint8_t integration_index = 0;
 
 const FB_Capacitors capacitors[] = {C0,C1,C2,C3,C4};
 const uint32_t capacitors_length = (sizeof(capacitors) / sizeof(capacitors[0]));
 static uint8_t capacity_index = 0;
 
-static volatile Timer_Routine_Type timer_routine = start_integtation;
+static volatile Timer_Routine_Type timer_routine = start_integration;
 
 static uint16_t adc_measurements[integration_times_length*capacitors_length] = {0};
 static uint16_t adc_index = 0;
@@ -51,8 +51,8 @@ static void start_timer(uint16_t usec) {
 
 void awags_interrupt_routine(void) {
 	switch(timer_routine) {
-	case start_integtation:
-		if (integation_index == 0) {
+	case start_integration:
+		if (integration_index == 0) {
 			set_feedback_capacitors(capacitors[capacity_index]);
 			capacity_index ++;
 		}
@@ -60,8 +60,8 @@ void awags_interrupt_routine(void) {
 		set_reset(true);
 		set_reset(false);
 		//start timer
-		start_timer(integration_times[integation_index]);	// in µsec
-		integation_index ++;
+		start_timer(integration_times[integration_index]);	// in µsec
+		integration_index ++;
 
 
 		//set next state
@@ -75,18 +75,18 @@ void awags_interrupt_routine(void) {
 	case stop_integration:
 		// last measurement finished
 		if ((capacity_index >= capacitors) &&
-				(integation_index >= integration_times_length)) {
+				(integration_index >= integration_times_length)) {
 			capacity_index = 0;
-			integation_index = 0;
+			integration_index = 0;
 			safe_best_ADC_value();
 		}
 		else {
-			if (integation_index >= integration_times_length) {
-				integation_index = 0;
+			if (integration_index >= integration_times_length) {
+				integration_index = 0;
 			}
 			start_timer(RESET_TIME);
 		}
-		timer_routine = start_integtation;
+		timer_routine = start_integration;
 		break;
 	default:
 		break;
@@ -103,9 +103,9 @@ void awags_interrupt_routine(void) {
  */
 void awags_trigger_execution(uint16_t integration_time) {
 	capacity_index = 0;
-	integation_index = 0;
+	integration_index = 0;
 	adc_index = 0;
-	timer_routine = start_integtation;
+	timer_routine = start_integration;
 	//start manually, next measurements will be triggered by the timer
 	awags_interrupt_routine();
 }
@@ -119,8 +119,8 @@ void save_ADC_measurement(uint16_t value) {
 }
 
 void safe_best_ADC_value(void) {
-	target_value = INT16_MAX/2;
-	best_dist = INT16_MAX;
+	target_value = UINT16_MAX/2;
+	best_dist = UINT16_MAX;
 	best_index = 0;
 	for ( uint16_t i = 0; i < (integration_times_length*capacitors_length); i++) {
 		if (abs(target_value-adc_measurements[i]) < abs(target_value-best_dist)) {

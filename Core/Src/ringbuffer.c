@@ -15,22 +15,26 @@
 
 static RingBuffer rb;
 
-void initRingBuffer() {
+void RINGBUFFER_init() {
     rb.head = 0;
     rb.tail = 0;
     rb.size = 0;
 }
 
-static bool isFull() {
+void RINGBUFFER_reset(){
+	RINGBUFFER_init();
+}
+
+static bool RINGBUFFER_isFull() {
     return rb.size == BUFFER_SIZE;
 }
 
-static bool isEmpty() {
+static bool RINGBUFFER_isEmpty() {
     return rb.size == 0;
 }
 
-void enqueue(DataItem data) {
-    if (isFull(rb)) {
+void RINGBUFFER_enqueue(RINGBUFFER_DataItem data) {
+    if (RINGBUFFER_isFull(rb)) {
         rb.tail = (rb.tail + 1) % BUFFER_SIZE;  // Move tail forward to overwrite the oldest data
     } else {
         rb.size++;
@@ -39,8 +43,8 @@ void enqueue(DataItem data) {
     rb.head = (rb.head + 1) % BUFFER_SIZE;
 }
 
-bool dequeue(DataItem *data) {
-    if (isEmpty(rb)) {
+bool RINGBUFFER_dequeue(RINGBUFFER_DataItem *data) {
+    if (RINGBUFFER_isEmpty(rb)) {
         return false;  // Buffer is empty, cannot remove data
     }
     *data = rb.buffer[rb.tail];

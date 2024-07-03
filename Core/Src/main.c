@@ -115,6 +115,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
   __HAL_TIM_SET_AUTORELOAD(&htim1,100000); //100.000 µsec
   HAL_TIM_Base_Start_IT(&htim1);
+  HAL_I2C_EnableListen_IT(&hi2c2);
 
   /* USER CODE END 2 */
 

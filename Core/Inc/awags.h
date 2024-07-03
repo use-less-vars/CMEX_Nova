@@ -24,7 +24,7 @@ typedef enum {
 } FB_Capacitors;
 
 typedef enum {
-	start_integtation,
+	start_integration,
 	start_ADC,
 	stop_integration
 
