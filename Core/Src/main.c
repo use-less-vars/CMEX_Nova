@@ -103,7 +103,7 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
+  __enable_irq();
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -117,12 +117,16 @@ int main(void)
   HAL_TIM_Base_Start_IT(&htim1);
   HAL_I2C_EnableListen_IT(&hi2c2);
 
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    uint8_t a = 0;
+    a++;
+    uint8_t b = a;
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -188,7 +192,7 @@ static void MX_I2C2_Init(void)
   hi2c2.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
   hi2c2.Init.OwnAddress2 = 0;
   hi2c2.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
-  hi2c2.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  hi2c2.Init.NoStretchMode = I2C_NOSTRETCH_ENABLE;
   if (HAL_I2C_Init(&hi2c2) != HAL_OK)
   {
     Error_Handler();

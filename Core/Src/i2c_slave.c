@@ -14,7 +14,7 @@ uint8_t dummy_in;
 RINGBUFFER_DataItem data;
 
 void HAL_I2C_ListenCpltCallback(I2C_HandleTypeDef *hi2c){
-	HAL_I2C_EnableListen_IT(hi2c2); // Start listening again
+	HAL_I2C_EnableListen_IT(hi2c); // Start listening again
 }
 
 void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, uint16_t AddrMatchCode){
@@ -24,9 +24,10 @@ void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t TransferDirection, ui
 			RINGBUFFER_reset();
 		}
 	else{
-		RINGBUFFER_dequeue(&data);
+		//RINGBUFFER_dequeue(&data);
 
-		//TODO: put into dataOutArr
-		HAL_I2C_Slave_Seq_Transmit_IT(hi2c, (uint8_t*)&data, 9, 0);
+		data.timestamp++;
+		data.type = 1;
+		HAL_I2C_Slave_Seq_Transmit_IT(hi2c, (uint8_t*)&data, 9,I2C_FIRST_FRAME );
 	}
 }

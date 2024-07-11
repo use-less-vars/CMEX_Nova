@@ -6088,7 +6088,7 @@ static void I2C_SlaveTransmit_TXE(I2C_HandleTypeDef *hi2c)
   if (hi2c->XferCount != 0U)
   {
     /* Write data to DR */
-    hi2c->Instance->DR = *hi2c->pBuffPtr;
+    hi2c->Instance->DR = 0b10101010;//*hi2c->pBuffPtr;
 
     /* Increment Buffer pointer */
     hi2c->pBuffPtr++;
@@ -6126,7 +6126,7 @@ static void I2C_SlaveTransmit_BTF(I2C_HandleTypeDef *hi2c)
   if (hi2c->XferCount != 0U)
   {
     /* Write data to DR */
-    hi2c->Instance->DR = *hi2c->pBuffPtr;
+    hi2c->Instance->DR = 0b10101010;//*hi2c->pBuffPtr;
 
     /* Increment Buffer pointer */
     hi2c->pBuffPtr++;
