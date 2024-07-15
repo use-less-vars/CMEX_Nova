@@ -24,6 +24,7 @@
 /* USER CODE BEGIN Includes */
 #include "awags.h"
 #include "GRM.h"
+#include "i2c_slave.h"
 #include "stm32f1xx_hal_tim.h"
 /* USER CODE END Includes */
 
@@ -269,7 +270,8 @@ void I2C2_EV_IRQHandler(void)
   /* USER CODE BEGIN I2C2_EV_IRQn 0 */
 
   /* USER CODE END I2C2_EV_IRQn 0 */
-  HAL_I2C_EV_IRQHandler(&hi2c2);
+	JOJO_InterruptHandler(&hi2c2);
+  //HAL_I2C_EV_IRQHandler(&hi2c2);
   /* USER CODE BEGIN I2C2_EV_IRQn 1 */
 
   /* USER CODE END I2C2_EV_IRQn 1 */
@@ -281,9 +283,9 @@ void I2C2_EV_IRQHandler(void)
 void I2C2_ER_IRQHandler(void)
 {
   /* USER CODE BEGIN I2C2_ER_IRQn 0 */
-
+	//JOJO_InterruptHandler(&hi2c2);
   /* USER CODE END I2C2_ER_IRQn 0 */
-  HAL_I2C_ER_IRQHandler(&hi2c2);
+  //HAL_I2C_ER_IRQHandler(&hi2c2);
   /* USER CODE BEGIN I2C2_ER_IRQn 1 */
 
   /* USER CODE END I2C2_ER_IRQn 1 */

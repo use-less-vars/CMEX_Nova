@@ -85,6 +85,7 @@ void awags_interrupt_routine(void) {
 			capacity_index = 0;
 			integration_index = 0;
 			safe_best_ADC_value();
+			HAL_TIM_Base_Stop_IT(&htim3);
 		}
 		else {
 			if (integration_index >= integration_times_length) {
