@@ -107,15 +107,15 @@ int main(void)
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
-  MX_I2C2_Init();
   MX_GPIO_Init();
-  //MX_SPI1_Init();
-  //MX_TIM3_Init();
-
-  //MX_TIM1_Init();
+  MX_SPI1_Init();
+  MX_TIM3_Init();
+  MX_I2C2_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
   //__HAL_TIM_SET_AUTORELOAD(&htim1,100000); //100.000 µsec
   //HAL_TIM_Base_Start_IT(&htim1);
+  HAL_Delay(5);
   HAL_I2C_EnableListen_IT(&hi2c2);
 
 

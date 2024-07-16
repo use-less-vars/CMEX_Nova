@@ -13,7 +13,8 @@
 uint8_t dummy_in;
 RINGBUFFER_DataItem data;
 uint8_t data_test[9] = {255};
-uint16_t count = 0;
+uint8_t count = 0;
+uint8_t call_count = 0;
 uint8_t debug_arr[260];
 
 #define IS_BIT_SET(byte, bit) ((byte) & (1 << (bit)))
@@ -61,18 +62,29 @@ void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c){
 void JOJO_InterruptHandler(I2C_HandleTypeDef *hi2c)
 {
   uint32_t sr1itflags;
-  uint32_t sr2itflags;
+  volatile uint32_t sr2itflags;
   sr1itflags = hi2c->Instance->SR1;
   sr2itflags = hi2c->Instance->SR2;
 
+//  if(sr1itflags = )
+//  sr1itflags = hi2c->Instance->SR1;
+//  sr1itflags = hi2c->Instance->SR1;
+//  sr1itflags = hi2c->Instance->SR1;
+  call_count++;
   count++;
   debug_arr[count]=0xFF;
   uint8_t already_sent = 0;
+  if(count > 22){
+	  //sr1itflags = 5;
+  }
+
   if(IS_BIT_SET(sr1itflags,ADDR_FLAG)){
 	  //Slave has just been addressed. Load Data to the DR reg.
 
 	  //sr2itflags = hi2c->Instance->SR2; //read SR2 after new Data has been written to DR to clear ADDR-Flag
-	  hi2c->Instance->DR = count;
+
+	  //sr2itflags = hi2c->Instance->SR2;
+	  hi2c->Instance->DR = call_count;
 	  already_sent = 1;
 	  //sr1itflags = hi2c->Instance->SR1;
 	  count++;
@@ -82,7 +94,7 @@ void JOJO_InterruptHandler(I2C_HandleTypeDef *hi2c)
   }
   if(IS_BIT_SET(sr1itflags, TXE_FLAG)){
 	  if(already_sent == 0){
-		  hi2c->Instance->DR = count; //write data to DR reg as it has been loaded to shift reg
+		  hi2c->Instance->DR = call_count; //write data to DR reg as it has been loaded to shift reg
 		  already_sent = 1;
 	  }
 	  count++;
@@ -97,14 +109,15 @@ void JOJO_InterruptHandler(I2C_HandleTypeDef *hi2c)
 	  //TODO: Communication done.
 	  count++;
 	  debug_arr[count] = 4;
+	  hi2c->Instance->SR1 = 1 << AF_FLAG;
   }
   if(IS_BIT_SET(sr1itflags, OVF_FLAG)){
 	  count++;
 	  debug_arr[count] = 5;
-	  hi2c->Instance->SR1 = 1 << AF_FLAG;
+
 
   }
-  if(count > 140){
+  if(count > 60){
 	  count ++;
 	  count --;
   }

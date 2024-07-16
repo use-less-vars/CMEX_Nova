@@ -4751,16 +4751,13 @@ HAL_StatusTypeDef HAL_I2C_Slave_Seq_Receive_DMA(I2C_HandleTypeDef *hi2c, uint8_t
   */
 HAL_StatusTypeDef HAL_I2C_EnableListen_IT(I2C_HandleTypeDef *hi2c)
 {
-  if (hi2c->State == HAL_I2C_STATE_READY)
-  {
-    hi2c->State = HAL_I2C_STATE_LISTEN;
+
 
     /* Check if the I2C is already enabled */
-    if ((hi2c->Instance->CR1 & I2C_CR1_PE) != I2C_CR1_PE)
-    {
+
       /* Enable I2C peripheral */
       __HAL_I2C_ENABLE(hi2c);
-    }
+
 
     /* Enable Address Acknowledge */
     SET_BIT(hi2c->Instance->CR1, I2C_CR1_ACK);
@@ -4769,11 +4766,7 @@ HAL_StatusTypeDef HAL_I2C_EnableListen_IT(I2C_HandleTypeDef *hi2c)
     __HAL_I2C_ENABLE_IT(hi2c, I2C_IT_EVT | I2C_IT_ERR);
 
     return HAL_OK;
-  }
-  else
-  {
-    return HAL_BUSY;
-  }
+
 }
 
 /**
