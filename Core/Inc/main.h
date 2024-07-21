@@ -87,6 +87,8 @@ void Error_Handler(void);
 #define OS2_GPIO_Port GPIOA
 #define BUSY_Pin GPIO_PIN_10
 #define BUSY_GPIO_Port GPIOA
+#define TEST_Pin GPIO_PIN_7
+#define TEST_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 void main_timer_callback(void);

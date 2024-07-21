@@ -29,7 +29,7 @@ static bool RINGBUFFER_isFull() {
     return rb.size == BUFFER_SIZE;
 }
 
-static bool RINGBUFFER_isEmpty() {
+bool RINGBUFFER_isEmpty() {
     return rb.size == 0;
 }
 

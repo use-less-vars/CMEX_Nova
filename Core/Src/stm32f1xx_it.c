@@ -125,6 +125,7 @@ void HardFault_Handler(void)
   while (1)
   {
     /* USER CODE BEGIN W1_HardFault_IRQn 0 */
+	  //HAL_GPIO_TogglePin(TEST_GPIO_Port, TEST_Pin);
     /* USER CODE END W1_HardFault_IRQn 0 */
   }
 }
@@ -282,12 +283,18 @@ void I2C2_EV_IRQHandler(void)
 void I2C2_ER_IRQHandler(void)
 {
   /* USER CODE BEGIN I2C2_ER_IRQn 0 */
-  hi2c2.Instance->SR1 = 1 << 10;
-  /* USER CODE END I2C2_ER_IRQn 0 */
-  //HAL_I2C_ER_IRQHandler(&hi2c2);
-  /* USER CODE BEGIN I2C2_ER_IRQn 1 */
+	uint16_t sr1 = hi2c2.Instance->SR1;
+	hi2c2.Instance->SR1 = ~(1 << 10) & sr1 ;
+	//when err interrupt, this means that all data has been sent out. New data can be loaded.
+	i2c_set_data_buffer_state(I2C_BUFFER_EMPTY);
 
-  /* USER CODE END I2C2_ER_IRQn 1 */
+	//  hi2c2.Instance->CR1 = 1 << 15;
+	//  hi2c2.Instance->CR1 = 1 << 0;
+	/* USER CODE END I2C2_ER_IRQn 0 */
+	//HAL_I2C_ER_IRQHandler(&hi2c2);
+	/* USER CODE BEGIN I2C2_ER_IRQn 1 */
+
+	/* USER CODE END I2C2_ER_IRQn 1 */
 }
 
 /**

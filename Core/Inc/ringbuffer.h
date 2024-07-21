@@ -58,5 +58,7 @@ void RINGBUFFER_enqueue(RINGBUFFER_DataItem data);
 
 bool RINGBUFFER_dequeue(RINGBUFFER_DataItem *data);
 
+bool RINGBUFFER_isEmpty();
+
 
 #endif /* SRC_RINGBUFFER_H_ */

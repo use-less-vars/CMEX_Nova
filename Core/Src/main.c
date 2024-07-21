@@ -24,6 +24,7 @@
 #include "GRM.h"
 #include "awags.h"
 #include "ringbuffer.h"
+#include "i2c_slave.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -124,11 +125,34 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  RINGBUFFER_DataItem data_dummy;
+  data_dummy.data.data32_t = 0xDAEDBEEF;
+  data_dummy.type = 0xAA;
+  data_dummy.timestamp = 0xBBBBCCCC;
+
+  RINGBUFFER_DataItem test1;
+  test1.data.data32_t = 3;
+  test1.timestamp = 123456;
+  test1.type = 5;
+  RINGBUFFER_enqueue(test1);
+
   while (1)
   {
     uint8_t a = 0;
     a++;
     uint8_t b = a;
+    RINGBUFFER_DataItem data;
+    if(i2c_data_buffer_empty() == I2C_BUFFER_EMPTY){
+    	if(!RINGBUFFER_isEmpty()){
+    		RINGBUFFER_dequeue(&data);
+    	}else{
+    		data = data_dummy;
+    	}
+
+    	i2c_load_data_to_buffer((uint8_t*) &data);
+    }
+//    HAL_GPIO_TogglePin(TEST_GPIO_Port, TEST_Pin);
+//        HAL_Delay(50);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -363,7 +387,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(CS_GPIO_Port, CS_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, AWAGS_SEL_Pin|AWAGS_CLK_Pin|AWAGS_MOSI_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, AWAGS_SEL_Pin|AWAGS_CLK_Pin|AWAGS_MOSI_Pin|TEST_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(AWAGS_Reset_GPIO_Port, AWAGS_Reset_Pin, GPIO_PIN_RESET);
@@ -408,6 +432,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(BUSY_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : TEST_Pin */
+  GPIO_InitStruct.Pin = TEST_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  HAL_GPIO_Init(TEST_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PB9 */
   GPIO_InitStruct.Pin = GPIO_PIN_9;
