@@ -46,6 +46,7 @@ void i2c_set_data_buffer_state(i2c_buffer_state_t empty){
 
 void i2c_load_data_to_buffer(uint8_t* data){
 	memcpy(data_buffer, data, DATA_SIZE);
+	data_buffer_empty = I2C_BUFFER_NOT_EMPTY;
 }
 
 
