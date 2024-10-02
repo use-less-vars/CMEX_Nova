@@ -77,6 +77,7 @@ void main_timer_callback(void)
 	safe_best_ADC_value();						// save best awags measurements into ring buffer
 	awags_trigger_execution();				// start next awags measurements
 
+
 }
 /* USER CODE END 0 */
 
@@ -114,10 +115,14 @@ int main(void)
   MX_I2C2_Init();
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
-  //__HAL_TIM_SET_AUTORELOAD(&htim1,100000); //100.000 µsec
-  //HAL_TIM_Base_Start_IT(&htim1);
-  HAL_Delay(5);
-  HAL_I2C_EnableListen_IT(&hi2c2);
+  MX_I2C2_Init();
+  //MX_TIM1_Init();
+
+  __HAL_TIM_SET_AUTORELOAD(&htim1,1000); //100.000 µsec
+  HAL_TIM_Base_Start_IT(&htim1);
+  HAL_GPIO_TogglePin(TEST_GPIO_Port, TEST_Pin);
+  //HAL_Delay(5);
+  //HAL_I2C_EnableListen_IT(&hi2c2);
 
 
 
@@ -126,7 +131,7 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   RINGBUFFER_DataItem data_dummy;
-  data_dummy.data.data32_t = 0xDAEDBEEF;
+  data_dummy.data.data32_t = 0xDEADBEEF;
   data_dummy.type = 0xAA;
   data_dummy.timestamp = 0xBBBBCCCC;
 
@@ -135,6 +140,14 @@ int main(void)
   test1.timestamp = 123456;
   test1.type = 5;
   RINGBUFFER_enqueue(test1);
+  test1.data.data32_t = 5;
+  RINGBUFFER_enqueue(test1);
+  test1.data.data32_t = 99;
+  RINGBUFFER_enqueue(test1);
+  test1.data.data32_t = 45;
+  RINGBUFFER_enqueue(test1);
+  test1.data.data32_t = 22;
+  RINGBUFFER_enqueue(test1);
 
   while (1)
   {
@@ -142,15 +155,15 @@ int main(void)
     a++;
     uint8_t b = a;
     RINGBUFFER_DataItem data;
-    if(i2c_data_buffer_empty() == I2C_BUFFER_EMPTY){
-    	if(!RINGBUFFER_isEmpty()){
-    		RINGBUFFER_dequeue(&data);
-    	}else{
-    		data = data_dummy;
-    	}
-
-    	i2c_load_data_to_buffer((uint8_t*) &data);
-    }
+//    if(i2c_data_buffer_empty() == I2C_BUFFER_EMPTY){
+//    	if(!RINGBUFFER_isEmpty()){
+//    		RINGBUFFER_dequeue(&data);
+//    	}else{
+//    		data = data_dummy;
+//    	}
+//
+//    	i2c_load_data_to_buffer((uint8_t*) &data);
+//    }
 //    HAL_GPIO_TogglePin(TEST_GPIO_Port, TEST_Pin);
 //        HAL_Delay(50);
     /* USER CODE END WHILE */
@@ -290,9 +303,9 @@ static void MX_TIM1_Init(void)
 
   /* USER CODE END TIM1_Init 1 */
   htim1.Instance = TIM1;
-  htim1.Init.Prescaler = 8;
+  htim1.Init.Prescaler = 3200;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim1.Init.Period = 65535;
+  htim1.Init.Period = 100;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim1.Init.RepetitionCounter = 0;
   htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;

@@ -45,6 +45,7 @@ void set_reset(bool state);
 void write_awags(Awags_data data, bool high);
 void set_feedback_capacitors(FB_Capacitors binary);
 Awags_data read_awags(void);
+static uint16_t awags_read_register(bool high_register, bool awags_fb);
 
 void safe_best_ADC_value(void);
 
@@ -109,12 +110,18 @@ void awags_interrupt_routine(void) {
  * Starts the first integration of the AWAGS
  */
 void awags_trigger_execution() {
+	uint16_t test_val;
+	Awags_data test_data;
+	test_data.high_bytes = 0xa400;
 	capacity_index = 0;
 	integration_index = 0;
 	adc_index = 0;
 	timer_routine = start_integration;
 	//start manually, next measurements will be triggered by the timer
-	awags_interrupt_routine();
+	//awags_interrupt_routine();
+	test_val = awags_read_register(false, false);
+//	write_awags(test_data, true);
+	test_val++;
 }
 
 void save_ADC_measurement(uint8_t *value_array, uint8_t size) {
@@ -198,6 +205,7 @@ void write_awags(Awags_data data, bool high) {
 		}
 	}
 	HAL_GPIO_WritePin(GPIOC, RESET_PIN, LOW);
+	HAL_GPIO_WritePin(GPIOB, DO_PIN, LOW);
 	// Enable Inerrupts
 
 }
