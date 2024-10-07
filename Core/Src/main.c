@@ -25,6 +25,7 @@
 #include "awags.h"
 #include "ringbuffer.h"
 #include "i2c_slave.h"
+#include "adc.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -123,6 +124,7 @@ int main(void)
   HAL_GPIO_TogglePin(TEST_GPIO_Port, TEST_Pin);
   //HAL_Delay(5);
   //HAL_I2C_EnableListen_IT(&hi2c2);
+  adc_reset();
 
 
 
@@ -466,10 +468,15 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-	if(GPIO_Pin == GPIO_PIN_10){	// ADC Data ready
-		HAL_GPIO_WritePin(CS_GPIO_Port,CS_Pin, GPIO_PIN_RESET);	// set chip select active
-
-		HAL_SPI_Receive_IT(&hspi1, adc_data, 8);
+	if(GPIO_Pin == BUSY_Pin){	// ADC Data ready
+		if (HAL_GPIO_ReadPin(BUSY_GPIO_Port,BUSY_Pin)) {
+			// if BUSY is high, conversion started, pin can be set low
+			HAL_GPIO_WritePin(CONVST_GPIO_Port, CONVST_Pin, GPIO_PIN_RESET);
+		} else {
+			// if busy switched to low, conversion is finished, data ready to read
+			HAL_GPIO_WritePin(CS_GPIO_Port,CS_Pin, GPIO_PIN_RESET);	// set chip select active
+			HAL_SPI_Receive_IT(&hspi1, adc_data, 8);
+		}
 	}
 	if(GPIO_Pin == GPIO_PIN_9) {	// GRM pulse
 		GRM_new_pulse();

@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include "assert.h"
 #include "ringbuffer.h"
+#include "adc.h"
 
 #define N_FB_CHANNELS (4)
 
@@ -75,7 +76,7 @@ void awags_interrupt_routine(void) {
 		timer_routine = start_ADC;
 		break;
 	case start_ADC:
-		// TODO: start ADC
+		adc_start_conversion();
 		start_timer(RESET_TIME);
 		timer_routine = stop_integration;
 		break;
@@ -100,7 +101,6 @@ void awags_interrupt_routine(void) {
 		break;
 	}
 
-	//TODO: start sample of ADC
 	//TODO: read in the Datasheet how much time the ADC need to capture the voltage.
 	// As backup divide the integraton time into 2 parts:
 	// Example 95% -> start ADC & 100% -> Stop integration
