@@ -110,18 +110,22 @@ void awags_interrupt_routine(void) {
  * Starts the first integration of the AWAGS
  */
 void awags_trigger_execution() {
-	uint16_t test_val;
+	static uint16_t test_val = 0;
 	Awags_data test_data;
-	test_data.high_bytes = 0xa400;
+	static uint8_t test_count = 0;
+	test_count++;
+//	test_data.high_bytes = 0xa400;
+	test_data.high.dac = test_val;//test_count %  2 ? 0b0000001000000001 : 0b0000001000000001;
 	capacity_index = 0;
 	integration_index = 0;
 	adc_index = 0;
 	timer_routine = start_integration;
 	//start manually, next measurements will be triggered by the timer
 	//awags_interrupt_routine();
-	test_val = awags_read_register(false, false);
-//	write_awags(test_data, true);
-	test_val++;
+	//test_val = awags_read_register(false, false);
+	write_awags(test_data, true);
+	test_val+=10;
+	test_val = test_val % 1024;
 }
 
 void save_ADC_measurement(uint8_t *value_array, uint8_t size) {
@@ -177,35 +181,40 @@ void safe_best_ADC_value(void) {
 void write_awags(Awags_data data, bool high) {
 	//
 	//TODO: Chip select high
+	__disable_irq();
+
 	uint16_t tx_buffer = 0;
 	if (high) {
 		tx_buffer = data.high_bytes;
 	} else {
 		tx_buffer = data.low_bytes;
 	}
-
+	// WARNING, DANGER, EXPLOSION, CLK and ADI are hardware-wise inverted, so software must invert them again.
+	// So a CLK=HIGH is actually CLK = LOW on the AWAGS Chip. Same with ADI.
 	// Disable Interrupts
-	HAL_GPIO_WritePin(GPIOB, CLK_PIN, LOW);
+	HAL_GPIO_WritePin(GPIOB, CLK_PIN, HIGH);
 	HAL_GPIO_WritePin(GPIOB, SEL_PIN, LOW);
-	HAL_GPIO_WritePin(GPIOB, DO_PIN, LOW);
+	HAL_GPIO_WritePin(GPIOB, DO_PIN, HIGH);
+	HAL_GPIO_WritePin(GPIOC, RESET_PIN, LOW);
 
 	HAL_GPIO_WritePin(GPIOB, SEL_PIN, HIGH);
 
 	for (uint8_t i = 0; i <= 15; i++) {
-		HAL_GPIO_WritePin(GPIOB, DO_PIN, (GPIO_PinState)((tx_buffer >> i) & 0x1));
-		HAL_GPIO_WritePin(GPIOB, CLK_PIN, HIGH);
+		HAL_GPIO_WritePin(GPIOB, DO_PIN, (GPIO_PinState)(~(tx_buffer >>(i)) & 0x1));
+		HAL_GPIO_WritePin(GPIOB, CLK_PIN, LOW);
 
 		if (i == 15) {
-			HAL_GPIO_WritePin(GPIOC, RESET_PIN, (GPIO_PinState)high);
+			HAL_GPIO_WritePin(GPIOC, RESET_PIN, (GPIO_PinState) high);
 			HAL_GPIO_WritePin(GPIOB, SEL_PIN, LOW);
-			HAL_GPIO_WritePin(GPIOB, CLK_PIN, LOW);
+			HAL_GPIO_WritePin(GPIOB, CLK_PIN, HIGH);
 		}
 		else {
-			HAL_GPIO_WritePin(GPIOB, CLK_PIN, LOW);
+			HAL_GPIO_WritePin(GPIOB, CLK_PIN, HIGH);
 		}
 	}
 	HAL_GPIO_WritePin(GPIOC, RESET_PIN, LOW);
-	HAL_GPIO_WritePin(GPIOB, DO_PIN, LOW);
+	HAL_GPIO_WritePin(GPIOB, DO_PIN, HIGH);
+	__enable_irq();
 	// Enable Inerrupts
 
 }

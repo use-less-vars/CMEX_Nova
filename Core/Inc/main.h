@@ -87,6 +87,7 @@ void Error_Handler(void);
 #define OS2_GPIO_Port GPIOA
 #define BUSY_Pin GPIO_PIN_10
 #define BUSY_GPIO_Port GPIOA
+#define BUSY_EXTI_IRQn EXTI15_10_IRQn
 #define TEST_Pin GPIO_PIN_7
 #define TEST_GPIO_Port GPIOB
 
