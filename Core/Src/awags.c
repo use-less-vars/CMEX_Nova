@@ -114,8 +114,10 @@ void awags_trigger_execution() {
 	Awags_data test_data;
 	static uint8_t test_count = 0;
 	test_count++;
+	uint16_t test_readout = 0;
 //	test_data.high_bytes = 0xa400;
 	test_data.high.dac = test_val;//test_count %  2 ? 0b0000001000000001 : 0b0000001000000001;
+	test_data.low_bytes = 0xFFFFFFFF;
 	capacity_index = 0;
 	integration_index = 0;
 	adc_index = 0;
@@ -124,17 +126,27 @@ void awags_trigger_execution() {
 	//awags_interrupt_routine();
 	//test_val = awags_read_register(false, false);
 	write_awags(test_data, true);
-	test_val+=10;
+	HAL_GPIO_WritePin(GPIOC, RESET_PIN, HIGH);
+	test_val++;
 	test_val = test_val % 1024;
+	//test_readout = awags_read_register(true, false);
+	//test_readout++;
+	for(uint16_t i=0; i < 60000; i++){
+		__asm("nop");
+	}
+	adc_start_conversion();
 }
 
 void save_ADC_measurement(uint8_t *value_array, uint8_t size) {
-	uint16_t data[4] = {0};
+	int16_t data[4] = {0};
+	double data_double[4];
     // Transform the uint8_t array to uint16_t array
     for (size_t i = 0; i < size; i += 2) {
-        uint16_t highByte = value_array[i];
-        uint16_t lowByte = value_array[i + 1];
+        uint16_t highByte = value_array[i+1];
+        uint16_t lowByte = value_array[i];
         data[i / 2] = (highByte << 8) | lowByte;
+        data_double[i/2] = ((double)data[i/2])*5000.0/32767.0;
+
     }
     for (uint32_t i = 0; i < 3; i++) {
 		// check if the index is inside the array
@@ -221,17 +233,22 @@ void write_awags(Awags_data data, bool high) {
 
 uint16_t awags_read_register(bool high_register, bool awags_fb) {
 	// Disable interrupts
+	// !!! Fast Mode does not work. Always do slow read out -> awags_fb must be false!
 	rx_buffer = 0;
 	uint8_t bit = 0;
-	HAL_GPIO_WritePin(GPIOB, CLK_PIN, LOW);
+	HAL_GPIO_WritePin(GPIOB, CLK_PIN, HIGH);
 	HAL_GPIO_WritePin(GPIOB, SEL_PIN, LOW);
 	HAL_GPIO_WritePin(GPIOB, DO_PIN, LOW);
 
-	if (awags_fb) {
-		HAL_GPIO_WritePin(GPIOB, CLK_PIN, LOW);
-	} else {
+	// WARNING, DANGER, EXPLOSION, CLK and ADI are hardware-wise inverted, so software must invert them again.
+	// So a CLK=HIGH is actually CLK = LOW on the AWAGS Chip. Same with ADI.
+
+	if (awags_fb) { //fast mode: only FB-reg readable in fast mode (FB means capacitor-setting
 		HAL_GPIO_WritePin(GPIOB, CLK_PIN, HIGH);
-		HAL_GPIO_WritePin(GPIOC, RESET_PIN, HIGH);		// high --> slow readout / low --> fast
+	} else { // slow mode: both high and low reg readable in slow-mode,
+			 //rst-pin = high means high-reg (dac-settings), rst-pin = low means FB (capacitor-settings-reg)
+		HAL_GPIO_WritePin(GPIOB, CLK_PIN, LOW); // clk = high at sel rising-edge means slow read-out, low means fast read out
+		HAL_GPIO_WritePin(GPIOC, RESET_PIN, high_register);	// reset pin in slow mode decides which register to read (high = high-reg and vice versa)
 	}
 
 	HAL_GPIO_WritePin(GPIOB, SEL_PIN, HIGH);	//start read
@@ -240,13 +257,13 @@ uint16_t awags_read_register(bool high_register, bool awags_fb) {
 		HAL_GPIO_WritePin(GPIOC, RESET_PIN, HIGH);
 	}
 	HAL_GPIO_WritePin(GPIOC, RESET_PIN, LOW);
-	HAL_GPIO_WritePin(GPIOB, CLK_PIN, LOW);
+	HAL_GPIO_WritePin(GPIOB, CLK_PIN, HIGH);
 	HAL_GPIO_WritePin(GPIOB, SEL_PIN, LOW);
 
 	for(uint8_t i = 0;i <= 15; i++ ) {
 		if ( i > 0)  {
-			HAL_GPIO_WritePin(GPIOB, CLK_PIN, HIGH);
 			HAL_GPIO_WritePin(GPIOB, CLK_PIN, LOW);
+			HAL_GPIO_WritePin(GPIOB, CLK_PIN, HIGH);
 		}
 		bit = HAL_GPIO_ReadPin(GPIOB, DI_PIN);
 		rx_buffer = rx_buffer | (bit <<i);
