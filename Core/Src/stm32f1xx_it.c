@@ -26,6 +26,7 @@
 #include "GRM.h"
 #include "i2c_slave.h"
 #include "stm32f1xx_hal_tim.h"
+#include "scheduler.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -69,7 +70,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	}
 	if(htim->Instance == TIM1) {
 
-		main_timer_callback();
+		scheduler_tick();
 	}
 }
 

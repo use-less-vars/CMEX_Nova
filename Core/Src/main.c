@@ -26,6 +26,7 @@
 #include "ringbuffer.h"
 #include "i2c_slave.h"
 #include "adc.h"
+#include "scheduler.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -54,6 +55,7 @@ TIM_HandleTypeDef htim3;
 /* USER CODE BEGIN PV */
 
 uint8_t adc_data[8];
+int16_t adc_results[4];
 volatile uint8_t adc_data_available = 0;
 
 /* USER CODE END PV */
@@ -118,6 +120,8 @@ int main(void)
   /* USER CODE BEGIN 2 */
   MX_I2C2_Init();
   //MX_TIM1_Init();
+  scheduler_init();
+  scheduler_add(main_timer_callback, 50000, 0);
   adc_reset();
   __HAL_TIM_SET_AUTORELOAD(&htim1,1000); //100.000 µsec
   HAL_TIM_Base_Start_IT(&htim1);
@@ -153,9 +157,7 @@ int main(void)
 
   while (1)
   {
-//	HAL_GPIO_WritePin(CS_GPIO_Port,CS_Pin, GPIO_PIN_RESET);	// set chip select active
-//	HAL_SPI_Receive(&hspi1, adc_data, 1, 10000);
-//	HAL_GPIO_WritePin(CS_GPIO_Port,CS_Pin, GPIO_PIN_SET);
+	scheduler_run();
 
     uint8_t a = 0;
     a++;
@@ -309,9 +311,9 @@ static void MX_TIM1_Init(void)
 
   /* USER CODE END TIM1_Init 1 */
   htim1.Instance = TIM1;
-  htim1.Init.Prescaler = 3200;
+  htim1.Init.Prescaler = 32;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim1.Init.Period = 100;
+  htim1.Init.Period = 10;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim1.Init.RepetitionCounter = 0;
   htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
@@ -496,6 +498,9 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi){
 	HAL_GPIO_WritePin(CS_GPIO_Port,CS_Pin, GPIO_PIN_SET);	// set Chip select deactive
 	save_ADC_measurement(adc_data,sizeof(adc_data));
+	for(uint8_t i = 0; i<4 ; i++){
+		adc_results[i] = adc_data[i*2] << 8 | adc_data[i*2+1];
+	}
 }
 
 /* USER CODE END 4 */
