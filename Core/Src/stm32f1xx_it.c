@@ -66,7 +66,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 
 	if(htim->Instance == TIM3) {
-		awags_interrupt_routine();
+		//awags_interrupt_routine();
 	}
 	if(htim->Instance == TIM1) {
 
@@ -94,7 +94,6 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
 extern I2C_HandleTypeDef hi2c2;
 extern SPI_HandleTypeDef hspi1;
 extern TIM_HandleTypeDef htim1;
-extern TIM_HandleTypeDef htim3;
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -253,26 +252,12 @@ void TIM1_UP_IRQHandler(void)
 }
 
 /**
-  * @brief This function handles TIM3 global interrupt.
-  */
-void TIM3_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM3_IRQn 0 */
-
-  /* USER CODE END TIM3_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim3);
-  /* USER CODE BEGIN TIM3_IRQn 1 */
-
-  /* USER CODE END TIM3_IRQn 1 */
-}
-
-/**
   * @brief This function handles I2C2 event interrupt.
   */
 void I2C2_EV_IRQHandler(void)
 {
   /* USER CODE BEGIN I2C2_EV_IRQn 0 */
-  JOJO_InterruptHandler(&hi2c2);
+
   /* USER CODE END I2C2_EV_IRQn 0 */
   HAL_I2C_EV_IRQHandler(&hi2c2);
   /* USER CODE BEGIN I2C2_EV_IRQn 1 */
@@ -286,13 +271,7 @@ void I2C2_EV_IRQHandler(void)
 void I2C2_ER_IRQHandler(void)
 {
   /* USER CODE BEGIN I2C2_ER_IRQn 0 */
-	uint16_t sr1 = hi2c2.Instance->SR1;
-	hi2c2.Instance->SR1 = ~(1 << 10) & sr1 ;
-	//when err interrupt, this means that all data has been sent out. New data can be loaded.
-	i2c_set_data_buffer_state(I2C_BUFFER_EMPTY);
 
-	//  hi2c2.Instance->CR1 = 1 << 15;
-	//  hi2c2.Instance->CR1 = 1 << 0;
   /* USER CODE END I2C2_ER_IRQn 0 */
   HAL_I2C_ER_IRQHandler(&hi2c2);
   /* USER CODE BEGIN I2C2_ER_IRQn 1 */

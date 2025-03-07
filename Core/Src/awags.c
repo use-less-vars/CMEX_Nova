@@ -131,9 +131,11 @@ void awags_trigger_execution() {
 	test_val = test_val % 1024;
 	//test_readout = awags_read_register(true, false);
 	//test_readout++;
+	HAL_GPIO_WritePin(GPIOB, DO_PIN, HIGH);
 	for(uint16_t i=0; i < 60000; i++){
 		__asm("nop");
 	}
+	HAL_GPIO_WritePin(GPIOB, DO_PIN, LOW);
 	adc_start_conversion();
 }
 

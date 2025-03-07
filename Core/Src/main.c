@@ -76,9 +76,9 @@ static void MX_TIM1_Init(void);
 
 void main_timer_callback(void)
 {
-	GRM_write_counter_into_ringbuffer();		// save count into ring buffer
-	safe_best_ADC_value();						// save best awags measurements into ring buffer
-	awags_trigger_execution();				// start next awags measurements
+//	GRM_write_counter_into_ringbuffer();		// save count into ring buffer
+//	safe_best_ADC_value();						// save best awags measurements into ring buffer
+//	awags_trigger_execution();				// start next awags measurements
 
 
 }
@@ -121,9 +121,9 @@ int main(void)
   MX_I2C2_Init();
   //MX_TIM1_Init();
   scheduler_init();
-  scheduler_add(main_timer_callback, 50000, 0);
+  scheduler_add(main_timer_callback, 20000, 0);
   adc_reset();
-  __HAL_TIM_SET_AUTORELOAD(&htim1,1000); //100.000 µsec
+  //__HAL_TIM_SET_AUTORELOAD(&htim1,1000); //100.000 µsec
   HAL_TIM_Base_Start_IT(&htim1);
   HAL_GPIO_TogglePin(TEST_GPIO_Port, TEST_Pin);
   //HAL_Delay(5);
@@ -157,6 +157,7 @@ int main(void)
 
   while (1)
   {
+
 	scheduler_run();
 
     uint8_t a = 0;
@@ -199,7 +200,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL4;
+  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -211,10 +212,10 @@ void SystemClock_Config(void)
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
   {
     Error_Handler();
   }
@@ -311,9 +312,9 @@ static void MX_TIM1_Init(void)
 
   /* USER CODE END TIM1_Init 1 */
   htim1.Instance = TIM1;
-  htim1.Init.Prescaler = 32;
+  htim1.Init.Prescaler = 72;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim1.Init.Period = 10;
+  htim1.Init.Period = 50;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim1.Init.RepetitionCounter = 0;
   htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
@@ -468,7 +469,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
-  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 1, 0);
   HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */

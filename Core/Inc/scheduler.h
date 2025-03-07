@@ -15,6 +15,7 @@ typedef struct {
     uint16_t next_execution;
     uint8_t remaining_runs;
     bool active;
+    bool lies_in_future_time_frame;
 } Task;
 
 void scheduler_init(void);
