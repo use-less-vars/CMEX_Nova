@@ -48,6 +48,7 @@
 I2C_HandleTypeDef hi2c2;
 
 SPI_HandleTypeDef hspi1;
+DMA_HandleTypeDef hdma_spi1_rx;
 
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim3;
@@ -63,6 +64,7 @@ volatile uint8_t adc_data_available = 0;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_I2C2_Init(void);
@@ -113,6 +115,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_SPI1_Init();
   MX_TIM3_Init();
   MX_I2C2_Init();
@@ -388,6 +391,22 @@ static void MX_TIM3_Init(void)
 }
 
 /**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA1_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA1_Channel2_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel2_IRQn, 1, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel2_IRQn);
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -491,7 +510,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 			HAL_GPIO_WritePin(CS_GPIO_Port,CS_Pin, GPIO_PIN_RESET);	// set chip select active
 			uint8_t tmpreg = READ_REG(hspi1.Instance->DR); //clear garbage from receive-buffer
 			//HAL_SPI_Abort_IT(&hspi1);
-			HAL_SPI_Receive_IT(&hspi1, adc_data, sizeof(adc_data));
+			HAL_SPI_Receive_DMA(&hspi1, adc_data, sizeof(adc_data));
 			HAL_GPIO_WritePin(CONVST_GPIO_Port, CONVST_Pin, GPIO_PIN_RESET);
 		}
 	}
@@ -499,6 +518,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		GRM_new_pulse();
 	}
 }
+
+
 
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi){
 	HAL_GPIO_WritePin(CS_GPIO_Port,CS_Pin, GPIO_PIN_SET);	// set Chip select deactive
