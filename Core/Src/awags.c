@@ -42,7 +42,7 @@ static_assert((sizeof(integration_times) / sizeof(integration_times[0])) * (size
 static uint16_t adc_measurements[30][3] = {0};
 static uint16_t adc_index = 0;
 
-void set_reset(bool state);
+
 void write_awags(Awags_data data, bool high);
 void set_feedback_capacitors(FB_Capacitors binary);
 Awags_data read_awags(void);
@@ -65,8 +65,8 @@ void awags_interrupt_routine(void) {
 			capacity_index ++;
 		}
 		// trigger start integration impulse
-		set_reset(true);
-		set_reset(false);
+		awags_reset(true);
+		awags_reset(false);
 		//start timer
 		start_timer(integration_times[integration_index]);	// in µsec
 		integration_index ++;
@@ -311,6 +311,6 @@ void set_auto(bool state) {
 	write_awags(data_register,true);
 }
 
-void set_reset(bool state) {
+void awags_reset(bool state) {
 	HAL_GPIO_WritePin(GPIOC, RESET_PIN, state);
 }

@@ -59,6 +59,7 @@ typedef struct Awags_data {
 	};
 } Awags_data;
 
+void awags_reset(bool state);
 void awags_trigger_execution(void);
 void awags_interrupt_routine(void);
 

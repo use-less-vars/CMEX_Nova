@@ -121,7 +121,7 @@ int main(void)
   MX_I2C2_Init();
   //MX_TIM1_Init();
   scheduler_init();
-  scheduler_add(main_timer_callback, 20000, 0);
+  scheduler_add(adc_start_conversion, 50000, 0);
   adc_reset();
   //__HAL_TIM_SET_AUTORELOAD(&htim1,1000); //100.000 µsec
   HAL_TIM_Base_Start_IT(&htim1);
@@ -155,10 +155,13 @@ int main(void)
   test1.data.data32_t = 22;
   RINGBUFFER_enqueue(test1);
 
+  awags_reset(true);
+
   while (1)
   {
 
 	scheduler_run();
+
 
     uint8_t a = 0;
     a++;
@@ -314,7 +317,7 @@ static void MX_TIM1_Init(void)
   htim1.Instance = TIM1;
   htim1.Init.Prescaler = 72;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim1.Init.Period = 50;
+  htim1.Init.Period = 20;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim1.Init.RepetitionCounter = 0;
   htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
@@ -487,6 +490,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 			// if busy switched to low, conversion is finished, data ready to read
 			HAL_GPIO_WritePin(CS_GPIO_Port,CS_Pin, GPIO_PIN_RESET);	// set chip select active
 			uint8_t tmpreg = READ_REG(hspi1.Instance->DR); //clear garbage from receive-buffer
+			//HAL_SPI_Abort_IT(&hspi1);
 			HAL_SPI_Receive_IT(&hspi1, adc_data, sizeof(adc_data));
 			HAL_GPIO_WritePin(CONVST_GPIO_Port, CONVST_Pin, GPIO_PIN_RESET);
 		}
@@ -498,10 +502,11 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi){
 	HAL_GPIO_WritePin(CS_GPIO_Port,CS_Pin, GPIO_PIN_SET);	// set Chip select deactive
-	save_ADC_measurement(adc_data,sizeof(adc_data));
+	//save_ADC_measurement(adc_data,sizeof(adc_data));
 	for(uint8_t i = 0; i<4 ; i++){
 		adc_results[i] = adc_data[i*2] << 8 | adc_data[i*2+1];
 	}
+
 }
 
 /* USER CODE END 4 */
