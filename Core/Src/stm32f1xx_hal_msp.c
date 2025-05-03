@@ -24,7 +24,6 @@
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
-extern DMA_HandleTypeDef hdma_spi1_rx;
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN TD */
@@ -111,9 +110,9 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef* hi2c)
     /* Peripheral clock enable */
     __HAL_RCC_I2C2_CLK_ENABLE();
     /* I2C2 interrupt Init */
-    HAL_NVIC_SetPriority(I2C2_EV_IRQn, 1, 0);
+    HAL_NVIC_SetPriority(I2C2_EV_IRQn, 7, 0);
     HAL_NVIC_EnableIRQ(I2C2_EV_IRQn);
-    HAL_NVIC_SetPriority(I2C2_ER_IRQn, 1, 0);
+    HAL_NVIC_SetPriority(I2C2_ER_IRQn, 7, 0);
     HAL_NVIC_EnableIRQ(I2C2_ER_IRQn);
   /* USER CODE BEGIN I2C2_MspInit 1 */
 
@@ -189,25 +188,8 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-    /* SPI1 DMA Init */
-    /* SPI1_RX Init */
-    hdma_spi1_rx.Instance = DMA1_Channel2;
-    hdma_spi1_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
-    hdma_spi1_rx.Init.PeriphInc = DMA_PINC_DISABLE;
-    hdma_spi1_rx.Init.MemInc = DMA_MINC_ENABLE;
-    hdma_spi1_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-    hdma_spi1_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-    hdma_spi1_rx.Init.Mode = DMA_NORMAL;
-    hdma_spi1_rx.Init.Priority = DMA_PRIORITY_VERY_HIGH;
-    if (HAL_DMA_Init(&hdma_spi1_rx) != HAL_OK)
-    {
-      Error_Handler();
-    }
-
-    __HAL_LINKDMA(hspi,hdmarx,hdma_spi1_rx);
-
     /* SPI1 interrupt Init */
-    HAL_NVIC_SetPriority(SPI1_IRQn, 1, 0);
+    HAL_NVIC_SetPriority(SPI1_IRQn, 2, 0);
     HAL_NVIC_EnableIRQ(SPI1_IRQn);
   /* USER CODE BEGIN SPI1_MspInit 1 */
     GPIO_InitStruct.Pin = GPIO_PIN_5;
@@ -243,9 +225,6 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef* hspi)
     */
     HAL_GPIO_DeInit(GPIOA, GPIO_PIN_5|GPIO_PIN_6);
 
-    /* SPI1 DMA DeInit */
-    HAL_DMA_DeInit(hspi->hdmarx);
-
     /* SPI1 interrupt DeInit */
     HAL_NVIC_DisableIRQ(SPI1_IRQn);
   /* USER CODE BEGIN SPI1_MspDeInit 1 */
@@ -271,7 +250,7 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* htim_base)
     /* Peripheral clock enable */
     __HAL_RCC_TIM1_CLK_ENABLE();
     /* TIM1 interrupt Init */
-    HAL_NVIC_SetPriority(TIM1_UP_IRQn, 2, 0);
+    HAL_NVIC_SetPriority(TIM1_UP_IRQn, 10, 0);
     HAL_NVIC_EnableIRQ(TIM1_UP_IRQn);
   /* USER CODE BEGIN TIM1_MspInit 1 */
 
@@ -285,7 +264,7 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* htim_base)
     /* Peripheral clock enable */
     __HAL_RCC_TIM3_CLK_ENABLE();
     /* TIM3 interrupt Init */
-    HAL_NVIC_SetPriority(TIM3_IRQn, 1, 0);
+    HAL_NVIC_SetPriority(TIM3_IRQn, 6, 0);
     HAL_NVIC_EnableIRQ(TIM3_IRQn);
   /* USER CODE BEGIN TIM3_MspInit 1 */
 

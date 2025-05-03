@@ -26,7 +26,8 @@
 #include "GRM.h"
 #include "i2c_slave.h"
 #include "stm32f1xx_hal_tim.h"
-#include "scheduler.h"
+#include "scheduler.h"7
+#include "stm32f1xx_hal_spi.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -92,7 +93,6 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
 
 /* External variables --------------------------------------------------------*/
 extern I2C_HandleTypeDef hi2c2;
-extern DMA_HandleTypeDef hdma_spi1_rx;
 extern SPI_HandleTypeDef hspi1;
 extern TIM_HandleTypeDef htim1;
 extern TIM_HandleTypeDef htim3;
@@ -240,20 +240,6 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
-  * @brief This function handles DMA1 channel2 global interrupt.
-  */
-void DMA1_Channel2_IRQHandler(void)
-{
-  /* USER CODE BEGIN DMA1_Channel2_IRQn 0 */
-
-  /* USER CODE END DMA1_Channel2_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_spi1_rx);
-  /* USER CODE BEGIN DMA1_Channel2_IRQn 1 */
-
-  /* USER CODE END DMA1_Channel2_IRQn 1 */
-}
-
-/**
   * @brief This function handles TIM1 update interrupt.
   */
 void TIM1_UP_IRQHandler(void)
@@ -315,6 +301,25 @@ void I2C2_ER_IRQHandler(void)
 void SPI1_IRQHandler(void)
 {
   /* USER CODE BEGIN SPI1_IRQn 0 */
+	if(SPI_CHECK_FLAG(hspi1.Instance->SR, SPI_FLAG_RXNE)){
+		  uint8_t temp = hspi1.Instance->DR;
+		  hspi1.pRxBuffPtr[hspi1.RxXferSize-hspi1.RxXferCount] = temp;
+		  //hspi1.pRxBuffPtr++;
+		  hspi1.RxXferCount--;
+//		  if(hspi1.RxXferCount == 1){
+//			  for(uint8_t i = 0; i < ; i++){
+//				  __asm("nop");
+//			  }
+
+//		  }
+		  if(hspi1.RxXferCount == 0){
+			  __HAL_SPI_DISABLE(&hspi1);
+			  hspi1.State = HAL_SPI_STATE_READY;
+			  hspi1.RxCpltCallback(&hspi1);
+
+		  }
+	}
+	return;
 
   /* USER CODE END SPI1_IRQn 0 */
   HAL_SPI_IRQHandler(&hspi1);
