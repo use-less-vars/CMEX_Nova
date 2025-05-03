@@ -306,14 +306,14 @@ void SPI1_IRQHandler(void)
 		  hspi1.pRxBuffPtr[hspi1.RxXferSize-hspi1.RxXferCount] = temp;
 		  //hspi1.pRxBuffPtr++;
 		  hspi1.RxXferCount--;
-//		  if(hspi1.RxXferCount == 1){
-//			  for(uint8_t i = 0; i < ; i++){
-//				  __asm("nop");
-//			  }
-
-//		  }
-		  if(hspi1.RxXferCount == 0){
+		  if(hspi1.RxXferCount == 1){
+			  for(uint8_t i = 0; i < 10 ; i++){
+				  __asm("nop");
+			  }
 			  __HAL_SPI_DISABLE(&hspi1);
+		  }
+		  if(hspi1.RxXferCount == 0){
+
 			  hspi1.State = HAL_SPI_STATE_READY;
 			  hspi1.RxCpltCallback(&hspi1);
 

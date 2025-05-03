@@ -62,7 +62,7 @@ void scheduler_run(void) {
 
 // ISR called every 5 microseconds
 void scheduler_tick(void) {
-	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_15);
+	//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_15);
 	uint32_t prev_time = current_time_us;
     current_time_us += TIMER_TICK_US;
     if(current_time_us < prev_time){

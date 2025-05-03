@@ -121,7 +121,7 @@ int main(void)
   MX_I2C2_Init();
   //MX_TIM1_Init();
   scheduler_init();
-  scheduler_add(adc_start_conversion, 50000, 0);
+  scheduler_add(adc_start_conversion, 500, 0);
   adc_reset();
   //__HAL_TIM_SET_AUTORELOAD(&htim1,1000); //100.000 µsec
   HAL_TIM_Base_Start_IT(&htim1);
@@ -489,7 +489,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		} else {
 			// if busy switched to low, conversion is finished, data ready to read
 			HAL_GPIO_WritePin(CS_GPIO_Port,CS_Pin, GPIO_PIN_RESET);	// set chip select active
-			//uint8_t tmpreg = READ_REG(hspi1.Instance->DR); //clear garbage from receive-buffer
+			uint8_t tmpreg = READ_REG(hspi1.Instance->DR); //clear garbage from receive-buffer
 			//HAL_SPI_Abort_IT(&hspi1);
 			HAL_SPI_Receive_IT(&hspi1, adc_data, sizeof(adc_data));
 			HAL_GPIO_WritePin(CONVST_GPIO_Port, CONVST_Pin, GPIO_PIN_RESET);
